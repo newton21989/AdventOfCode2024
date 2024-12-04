@@ -29,6 +29,17 @@ function is_safe($line) {
   return true;
 }
 
+function is_safe_dampened($line) {
+  for($i = 0; $i < count($line); $i++) {
+    $lineloop = $line;
+    array_splice($lineloop, $i, 1);
+    if(is_safe($lineloop)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 $file = file_get_contents("day2.txt", true);
 if(!$file)
   die("Colud not open input file.");
@@ -43,4 +54,13 @@ foreach($lines as $line) {
   }
 }
 
+$out2 = 0;
+foreach($lines as $line) {
+  $l = explode(" ", trim($line));
+  if(is_safe_dampened($l)) {
+    $out2++;
+  }
+}
+
 echo "Day 2 part 1: $out\n";
+echo "Day 2 part 2: $out2\n";
