@@ -29,6 +29,11 @@ function is_safe($line) {
   return true;
 }
 
+/**
+ * Determine whether unusual data is safe if any single value is omitted
+ * @param Array $line Array of readings
+ * @return bool
+ */
 function is_safe_dampened($line) {
   for($i = 0; $i < count($line); $i++) {
     $lineloop = $line;
