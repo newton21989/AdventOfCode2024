@@ -2,7 +2,7 @@
 $l1 = [];
 $l2 = [];
 
-$file = file_get_contents("part1.txt", true);
+$file = file_get_contents("day1.txt", true);
 if(!$file)
   die("Colud not open input file.");
 
