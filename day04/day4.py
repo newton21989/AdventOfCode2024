@@ -53,5 +53,24 @@ if __name__ == "__main__":
       col += 1
     lineNum += 1
 
-  print(f"Part 1: {out1}")
-  # print(f"Part 2: {findGearRatios(lines)}")
+out2 = 0
+lineNum = 0
+for line in lines:
+  col = 0
+  for char in line:
+    if lineNum >= 1 and col >= 1 and lineNum < len(lines) - 1 and col < len(line) - 1:
+      if char == "A":
+        nw = lines[lineNum - 1][col - 1]
+        ne = lines[lineNum - 1][col + 1]
+        sw = lines[lineNum + 1][col - 1]
+        se = lines[lineNum + 1][col + 1]
+        nwneswse = ''.join([nw, ne, sw, se])
+
+        if nwneswse in ("MMSS", "MSMS", "SMSM", "SSMM"):
+          out2 += 1
+
+    col += 1
+  lineNum += 1
+
+print(f"Part 1: {out1}")
+print(f"Part 2: {out2}")
