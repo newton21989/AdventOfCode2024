@@ -25,10 +25,12 @@ foreach($updates as $u) {
 }
 
 $upvalid = [];
+$upinvalid = [];
 foreach($uparr as $u) {
   for($i = 1; $i < count($u); $i++) {
     for($j = $i - 1; $j >= 0; $j--) {
       if(in_array($u[$j], $r[(string)$u[$i]])) {
+        array_push($upinvalid, $u);
         continue 3;
       }
     }
@@ -43,3 +45,13 @@ foreach($upvalid as $u) {
 }
 
 echo "Day 5 part 1: $out1";
+
+foreach($upinvalid as $u) {
+  for($i = 1; $i < count($u); $i++) {
+    for($j = $i - 1; $j >= 0; $j--) {
+      if(in_array($u[$j], $r[(string)$u[$i]])) {
+        //fix out of order pages
+      }
+    }
+  }
+}
