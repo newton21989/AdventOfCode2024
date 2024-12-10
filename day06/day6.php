@@ -77,6 +77,11 @@ class guard {
    */
   private $map;
 
+  /** Path history
+   * @var array $history
+   */
+  private $history;
+
   function getObstacle() {
     if($this->direction == "^") {
       return $this->map->getObstacle($this->location["y"] - 1, $this->location["x"]);
@@ -113,7 +118,8 @@ class guard {
     }
 
     $this->map->walk($this->location);
-  
+    array_push($this->history, ["x"=>$this->location["x"], "y"=>$this->location["y"], "dir"=>$this->direction]);
+
     if($this->direction == "^") {
       $this->location["y"]--;
     }
@@ -128,6 +134,44 @@ class guard {
     }
 
     //$this->map->update($this->location, $this->direction);
+  }
+
+  function getNextPos() {
+    if($this->getObstacle()) {
+      if($this->direction == "^") {
+        $nextDirection = ">";
+      }
+      elseif($this->direction == ">") {
+        $nextDirection = "v";
+      }
+      elseif($this->direction == "v") {
+        $nextDirection = "<";
+      }
+      elseif($this->direction == "<") {
+        $nextDirection = "^";
+      }
+    }
+
+    if($nextDirection == "^") {
+      return ["x"=>$this->location["x"], "y"=>$this->location["y"] - 1];
+    }
+    elseif($nextDirection == "v") {
+      return ["x"=>$this->location["x"], "y"=>$this->location["y"] + 1];
+    }
+    elseif($nextDirection == "<") {
+      return ["x"=>$this->location["x"] - 1, "y"=>$this->location["y"]];
+    }
+    elseif($nextDirection == ">") {
+      return ["x"=>$this->location["x"] + 1, "y"=>$this->location["y"]];
+    }
+  }
+
+  function getLocation() {
+    return ["x"=>$this->location["x"], "y"=>$this->location["y"]];
+  }
+
+  function isLooping() {
+    return in_array(["x"=>$this->location["x"], "y"=>$this->location["y"], "dir"=>$this->direction], $this->history);
   }
 
   function isInRoom() {
@@ -157,14 +201,27 @@ class guard {
     $this->location["x"] = $location["x"];
     $this->location["y"] = $location["y"];
     $this->map = $map;
+    $this->history = [];
   }
 }
 
 $map = new map($rows);
 $guard = new guard($map->findGuard(), "^", $map);
+$guardloop = new guard($map->findGuard(), "^", $map);
 
 while($guard->isInRoom()) {
   $guard->move();
 }
 
 echo "Day 6 part 1: " . $map->coveredArea() . "\n";
+
+
+$startloc = $guardloop->getLocation();
+$o = 0;
+while($guardloop->isInRoom() && !$guardloop->isLooping()) {
+  if($o == 0) {
+    $maploop->placeObstacle($guardloop->getNextPos());
+  }
+  $guardloop->move();
+  $o--;
+}
