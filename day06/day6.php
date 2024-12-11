@@ -119,12 +119,13 @@ class guard {
   }
 
   function move() {
+    array_push($this->history, ["x"=>$this->location["x"], "y"=>$this->location["y"], "dir"=>$this->direction]);
+
     while($this->getObstacle()) {
       $this->turn();
     }
 
     $this->map->walk($this->location);
-    array_push($this->history, ["x"=>$this->location["x"], "y"=>$this->location["y"], "dir"=>$this->direction]);
 
     if($this->direction == "^") {
       $this->location["y"]--;
@@ -211,6 +212,7 @@ while($guard->isInRoom()) {
 
 echo "Day 6 part 1: " . $map->coveredArea() . "\n";
 
+$pathlen = count($guard->getHistory());
 $out2 = 0;
 $loophistory = [];
 $workers = [];
@@ -220,6 +222,7 @@ foreach($guard->getHistory() as $k=>$node) {
     array_push($loophistory, $pos);
   }
   else {
+    //echo "We've already tried this spot.\n";
     continue;
   }
 
@@ -227,14 +230,20 @@ foreach($guard->getHistory() as $k=>$node) {
     continue;
   }
 
-  $runtime = new Runtime();
-  $workers[$k] = $runtime->run(worker($rows, $pos, $startpos, $out2));
-}
+  echo "Path $k of $pathlen. Progress: " . round(($k/$pathlen)*100,2) . "%      \r";
 
-foreach($workers as $w) {
-  if($w->value()) {
+  $maploop = new map($rows);
+  $maploop->addObstacle($pos);
+  $guardloop = new guard($startpos, "^", $maploop);
+  while($guardloop->isInRoom() && !$guardloop->isLooping()) {
+    //echo ".(".$guardloop->getLocation()["x"].",".$guardloop->getLocation()["y"].")";
+    $guardloop->move();
+  }
+  if($guardloop->isLooping()) {
+    //echo "Successful obstacle found!";
     $out2++;
   }
+  //echo "\n";
 }
 
-echo "Day 6 part 2: " . $out2 . "\n";
+echo "\nDay 6 part 2: " . $out2 . "\n";
