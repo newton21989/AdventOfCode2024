@@ -1,4 +1,5 @@
 <?php
+use parallel\Runtime;
 set_time_limit(0);
 
 $file = file_get_contents("day6.txt", true);
@@ -141,36 +142,6 @@ class guard {
     //$this->map->update($this->location, $this->direction);
   }
 
-  // function getNextPos() {
-  //   while($this->getObstacle()) {
-  //     if($this->direction == "^") {
-  //       $nextDirection = ">";
-  //     }
-  //     elseif($this->direction == ">") {
-  //       $nextDirection = "v";
-  //     }
-  //     elseif($this->direction == "v") {
-  //       $nextDirection = "<";
-  //     }
-  //     elseif($this->direction == "<") {
-  //       $nextDirection = "^";
-  //     }
-  //   }
-
-  //   if($nextDirection == "^") {
-  //     return ["x"=>$this->location["x"], "y"=>$this->location["y"] - 1];
-  //   }
-  //   elseif($nextDirection == "v") {
-  //     return ["x"=>$this->location["x"], "y"=>$this->location["y"] + 1];
-  //   }
-  //   elseif($nextDirection == "<") {
-  //     return ["x"=>$this->location["x"] - 1, "y"=>$this->location["y"]];
-  //   }
-  //   elseif($nextDirection == ">") {
-  //     return ["x"=>$this->location["x"] + 1, "y"=>$this->location["y"]];
-  //   }
-  // }
-
   function getLocation() {
     return ["x"=>$this->location["x"], "y"=>$this->location["y"]];
   }
@@ -217,6 +188,19 @@ class guard {
   }
 }
 
+function worker($rows, $pos, $startpos, $out2) {
+  $maploop = new map($rows);
+  $maploop->addObstacle($pos);
+  $guardloop = new guard($startpos, "^", $maploop);
+  while($guardloop->isInRoom() && !$guardloop->isLooping()) {
+    $guardloop->move();
+  }
+  if($guardloop->isLooping()) {
+    return 1;
+  }
+  return 0;
+}
+
 $map = new map($rows);
 $startpos = $map->findGuard();
 $guard = new guard($startpos, "^", $map);
@@ -229,6 +213,7 @@ echo "Day 6 part 1: " . $map->coveredArea() . "\n";
 
 $out2 = 0;
 $loophistory = [];
+$workers = [];
 foreach($guard->getHistory() as $k=>$node) {
   $pos = ["x"=>$node["x"], "y"=>$node["y"]];
   if(!in_array($pos, $loophistory)) {
@@ -242,13 +227,12 @@ foreach($guard->getHistory() as $k=>$node) {
     continue;
   }
 
-  $maploop = new map($rows);
-  $maploop->addObstacle($pos);
-  $guardloop = new guard($startpos, "^", $maploop);
-  while($guardloop->isInRoom() && !$guardloop->isLooping()) {
-    $guardloop->move();
-  }
-  if($guardloop->isLooping()) {
+  $runtime = new Runtime();
+  $workers[$k] = $runtime->run(worker($rows, $pos, $startpos, $out2));
+}
+
+foreach($workers as $w) {
+  if($w->value()) {
     $out2++;
   }
 }
