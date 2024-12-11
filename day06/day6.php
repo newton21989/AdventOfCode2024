@@ -1,4 +1,5 @@
 <?php
+set_time_limit(0);
 
 $file = file_get_contents("day6.txt", true);
 if(!$file)
@@ -14,12 +15,16 @@ class map {
   }
 
   function getObstacle($y, $x) {
-    if($this->map[$y][$x] == "#") {
+    if(@$this->map[$y][$x] == "#" || @$this->map[$y][$x] == "O") {
       return true;
     }
     else {
       return false;
     }
+  }
+
+  function addObstacle($coord) {
+    $this->map[$coord["y"]][$coord["x"]] = "O";
   }
 
   function walk($coord) {
@@ -113,7 +118,7 @@ class guard {
   }
 
   function move() {
-    if($this->getObstacle()) {
+    while($this->getObstacle()) {
       $this->turn();
     }
 
@@ -136,38 +141,45 @@ class guard {
     //$this->map->update($this->location, $this->direction);
   }
 
-  function getNextPos() {
-    if($this->getObstacle()) {
-      if($this->direction == "^") {
-        $nextDirection = ">";
-      }
-      elseif($this->direction == ">") {
-        $nextDirection = "v";
-      }
-      elseif($this->direction == "v") {
-        $nextDirection = "<";
-      }
-      elseif($this->direction == "<") {
-        $nextDirection = "^";
-      }
-    }
+  // function getNextPos() {
+  //   while($this->getObstacle()) {
+  //     if($this->direction == "^") {
+  //       $nextDirection = ">";
+  //     }
+  //     elseif($this->direction == ">") {
+  //       $nextDirection = "v";
+  //     }
+  //     elseif($this->direction == "v") {
+  //       $nextDirection = "<";
+  //     }
+  //     elseif($this->direction == "<") {
+  //       $nextDirection = "^";
+  //     }
+  //   }
 
-    if($nextDirection == "^") {
-      return ["x"=>$this->location["x"], "y"=>$this->location["y"] - 1];
-    }
-    elseif($nextDirection == "v") {
-      return ["x"=>$this->location["x"], "y"=>$this->location["y"] + 1];
-    }
-    elseif($nextDirection == "<") {
-      return ["x"=>$this->location["x"] - 1, "y"=>$this->location["y"]];
-    }
-    elseif($nextDirection == ">") {
-      return ["x"=>$this->location["x"] + 1, "y"=>$this->location["y"]];
-    }
-  }
+  //   if($nextDirection == "^") {
+  //     return ["x"=>$this->location["x"], "y"=>$this->location["y"] - 1];
+  //   }
+  //   elseif($nextDirection == "v") {
+  //     return ["x"=>$this->location["x"], "y"=>$this->location["y"] + 1];
+  //   }
+  //   elseif($nextDirection == "<") {
+  //     return ["x"=>$this->location["x"] - 1, "y"=>$this->location["y"]];
+  //   }
+  //   elseif($nextDirection == ">") {
+  //     return ["x"=>$this->location["x"] + 1, "y"=>$this->location["y"]];
+  //   }
+  // }
 
   function getLocation() {
     return ["x"=>$this->location["x"], "y"=>$this->location["y"]];
+  }
+
+  /** Get path history
+   * @return array `["x"=>int, "y"=>int, "dir"=>string]`
+   */
+  function getHistory() {
+    return $this->history;
   }
 
   function isLooping() {
@@ -206,8 +218,8 @@ class guard {
 }
 
 $map = new map($rows);
-$guard = new guard($map->findGuard(), "^", $map);
-$guardloop = new guard($map->findGuard(), "^", $map);
+$startpos = $map->findGuard();
+$guard = new guard($startpos, "^", $map);
 
 while($guard->isInRoom()) {
   $guard->move();
@@ -215,13 +227,30 @@ while($guard->isInRoom()) {
 
 echo "Day 6 part 1: " . $map->coveredArea() . "\n";
 
-
-$startloc = $guardloop->getLocation();
-$o = 0;
-while($guardloop->isInRoom() && !$guardloop->isLooping()) {
-  if($o == 0) {
-    $maploop->placeObstacle($guardloop->getNextPos());
+$out2 = 0;
+$loophistory = [];
+foreach($guard->getHistory() as $k=>$node) {
+  $pos = ["x"=>$node["x"], "y"=>$node["y"]];
+  if(!in_array($pos, $loophistory)) {
+    array_push($loophistory, $pos);
   }
-  $guardloop->move();
-  $o--;
+  else {
+    continue;
+  }
+
+  if($k == 0) {
+    continue;
+  }
+
+  $maploop = new map($rows);
+  $maploop->addObstacle($pos);
+  $guardloop = new guard($startpos, "^", $maploop);
+  while($guardloop->isInRoom() && !$guardloop->isLooping()) {
+    $guardloop->move();
+  }
+  if($guardloop->isLooping()) {
+    $out2++;
+  }
 }
+
+echo "Day 6 part 2: " . $out2 . "\n";
