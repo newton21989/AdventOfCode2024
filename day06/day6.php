@@ -189,19 +189,6 @@ class guard {
   }
 }
 
-function worker($rows, $pos, $startpos, $out2) {
-  $maploop = new map($rows);
-  $maploop->addObstacle($pos);
-  $guardloop = new guard($startpos, "^", $maploop);
-  while($guardloop->isInRoom() && !$guardloop->isLooping()) {
-    $guardloop->move();
-  }
-  if($guardloop->isLooping()) {
-    return 1;
-  }
-  return 0;
-}
-
 $map = new map($rows);
 $startpos = $map->findGuard();
 $guard = new guard($startpos, "^", $map);
@@ -222,7 +209,6 @@ foreach($guard->getHistory() as $k=>$node) {
     array_push($loophistory, $pos);
   }
   else {
-    //echo "We've already tried this spot.\n";
     continue;
   }
 
@@ -236,14 +222,11 @@ foreach($guard->getHistory() as $k=>$node) {
   $maploop->addObstacle($pos);
   $guardloop = new guard($startpos, "^", $maploop);
   while($guardloop->isInRoom() && !$guardloop->isLooping()) {
-    //echo ".(".$guardloop->getLocation()["x"].",".$guardloop->getLocation()["y"].")";
     $guardloop->move();
   }
   if($guardloop->isLooping()) {
-    //echo "Successful obstacle found!";
     $out2++;
   }
-  //echo "\n";
 }
 
 echo "\nDay 6 part 2: " . $out2 . "\n";
